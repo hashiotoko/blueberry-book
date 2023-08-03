@@ -1,3 +1,5 @@
-const message: string = "Hello, world!";
+namespace Chapter1 {
+  const message: string = "Hello, world!";
 
-console.log(message);
+  console.log(message);
+}
