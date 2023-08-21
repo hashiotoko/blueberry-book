@@ -9,6 +9,7 @@ import { getFoo, someFunc, User } from './chapter7_1_2.js';
 import counter, { count } from './chapter7_1_3.js';
 // user1 は変数含めて export されているが型のみを import している
 import { Animal, tama, pochi, type user1 } from './chapter7_1_4.js';
+import * as user2 from './chapter7_1_5.js';
 
 // このファイルを実行すると import 先が上から順に読み込まれたのち、このファイルが読み込まれる(実行される)
 console.log('file index has been loaded.');
@@ -32,5 +33,8 @@ console.log(`The animal is ${tama.species}`);
 const qoo: typeof pochi = {
   species: 'dog',
   age: 8,
-}
+};
 // console.log(`The human is ${user1.name}`); これも型のみなのでエラー
+
+console.log(`The user name is ${user2.name} (${user2.age}).`);
+console.log(`The user language is ${user2.language}.`); // 再エクスポートされた値の読み込み
