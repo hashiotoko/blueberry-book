@@ -7,6 +7,8 @@ import {
 import { getFoo, someFunc, User } from './chapter7_1_2.js';
 // default export されたものに命名を付けて import 可能
 import counter, { count } from './chapter7_1_3.js';
+// user1 は変数含めて export されているが型のみを import している
+import { Animal, tama, pochi, type user1 } from './chapter7_1_4.js';
 
 // このファイルを実行すると import 先が上から順に読み込まれたのち、このファイルが読み込まれる(実行される)
 console.log('file index has been loaded.');
@@ -22,3 +24,13 @@ console.log(`The user name is ${user.name} (${user.age})`);
 console.log(`count is ${count}`);
 counter();
 console.log(`count is ${count}`);
+
+const piyo: Animal = { species: 'bird', age: 5 };
+console.log(`The animal is ${tama.species}`);
+// console.log(`The animal is ${pochi.species}`); 定義もとで型しか export してないので変数としては使えない
+// 以下のような感じで使える
+const qoo: typeof pochi = {
+  species: 'dog',
+  age: 8,
+}
+// console.log(`The human is ${user1.name}`); これも型のみなのでエラー
