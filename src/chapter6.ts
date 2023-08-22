@@ -661,6 +661,29 @@ namespace Chapter6 {
     // X が型引数かつユニオン型の場合に「ユニオン型のconditional types」が「conditional typesのユニオン型」になる
     // つまり、「(X1 | X2) extends Y ? S : T」が「(X1 extends Y ? S1 : T1) | (X2 extends Y ? S2 : T2)」になる
     // その際にSかTがXとなる時にはそこも分配されてX1ならX1となる(X1 | X2とはならない)
+    type None = { type: 'None' };
+    type Some<T> = { type: 'Some'; value: T };
+    type Option<T> = None | Some<T>;
+    type ValueOption<V extends Option<unknown>> = V extends Some<infer R>
+      ? R
+      : undefined;
+
+    // ユニオン型の分配が発生し、ValueOption<None> | ValueOption<Some<number>> = undefined | number となる
+    type T1 = ValueOption<Option<number>>;
+
+    // mapped types もユニオン型の分配が発生する
+    // { [P in keyof T]: X } におけるTが型引数の時にそこにユニオン型が渡されると
+    // { [P in keyof (T1 | T2)]: X } => { [P in T1]: X1 } | { [P in T2]: X2 } となる
+    type Arrayify<T> = { [P in keyof T]: Array<T[P]> };
+    type Foo = { foo: string };
+    type Bar = { bar: number };
+    type FooBar = Foo | Bar;
+
+    // 分配が発生し、Arrayify<Foo> | Arrayify<Bar> となる
+    type FooBarArr = Arrayify<FooBar>;
+
+    const arr1: FooBarArr = { foo: ['abc', 'def'] };
+    const arr2: FooBarArr = { bar: [1, 2, 3] };
   }
 
   // # 組み込み型
@@ -700,5 +723,73 @@ namespace Chapter6 {
     // ## NonNullable<T, K>
     // Exclude<T, undefined | null> と同じ意味
     type T8 = NonNullable<Foo>; // 'abc' | 'def' | 123 | true
+
+    // ## Record<K, T>
+    // 型Tな値を持つプロパティKのオブジェクト型を作成する
+    type T9 = Record<keyof Human, string>;
+
+    // ## Parameters<T>
+    // 「T extends (args: ...any[]) => any」つまり、Tは任意の引数を持つ関数型
+    // 関数型Tから引数の型を抽出したタプル型を作成する
+    function foo(arg1: number, arg2: string): void {}
+    function bar(): void {}
+
+    type T10_1 = Parameters<typeof foo>; // [arg1: number, arg2:string];
+    type T10_2 = Parameters<typeof bar>; // [];
+
+    const t10_1: T10_1 = [1, 'a'];
+    const t10_2: T10_2 = [];
+
+    // ## ConstructorParameters<T>
+    // 「T extends new (...args: any[]) => any」つまり、Tは任意のクラス型
+    // クラス型Tからコンストラクタの引数の型を抽出したタプル型を作成する
+    class Fizz {
+      constructor(public arg1: number, public arg2: string) {}
+    }
+
+    type T11 = ConstructorParameters<typeof Fizz>;
+
+    const t11: T11 = [1, 'a'];
+
+    // ## ReturnType<T>
+    // 関数型Tの返り値の型を抽出した型を作成する
+    type T12_1 = ReturnType<() => void>; // void
+    type T12_2 = ReturnType<() => number[]>; // number[]
+
+    // ## InstanceType<T>
+    // クラス型Tのコンストラクタの返り値の型を抽出した型(= クラスオブジェクトの型)を作成する
+    // クラス定義にアクセスできない場合やクラスが不確定(ジェネリクス使っているとかで)な場合に使う想定っぽい
+    // ref. https://yinm.info/20200222/
+    type T13 = InstanceType<typeof Fizz>; // Fizz
+
+    // ## ThisType<T>
+    // オブジェクトにおける this を型を指定できる特殊な型
+    type Piyo = { piyo: number };
+    type Fuga = { fuga(): string };
+
+    const func1: ThisType<Piyo> = {
+      myMethod() {
+        return this.piyo;
+      },
+    };
+    const func2: Fuga & ThisType<Piyo> = {
+      fuga() {
+        return this.piyo.toString();
+      },
+    };
+
+    // ## 文字列リテラル型の文字列を操作する型
+    type T14 = Uppercase<'abc'>;
+    type T15 = Lowercase<'Abc'>;
+    type T16 = Capitalize<'abcDef'>;
+    type T17 = Uncapitalize<'AbcDef'>;
+
+    // ## Awaited<T>
+    // 非同期処理における Promise の中身の型を取得する
+    type T18_1 = Awaited<Promise<number>>;
+    // Promise の入れ子でも最終的な中身を取得できる
+    type T18_2 = Awaited<Promise<Promise<number>>>;
+    // 単純な型の場合はそのまま
+    type T18_3 = Awaited<boolean | Promise<number>>;
   }
 }
